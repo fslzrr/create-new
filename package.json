@@ -10,6 +10,7 @@
 		"dev": "tsc --watch",
 		"prebuild": "pnpm clean",
 		"build": "tsc",
+		"check": "biome check && tsc --noEmit",
 		"format": "biome format --write",
 		"lint": "biome lint --write",
 		"test": "jest",

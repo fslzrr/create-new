@@ -1,0 +1,67 @@
+name: ci
+
+on:
+  pull_request:
+
+env:
+  HUSKY: 0
+
+jobs:
+  install-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup system environment
+        uses: ./.github/actions/setup
+  check:
+    runs-on: ubuntu-latest
+    needs: install-dependencies
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup system environment
+        uses: ./.github/actions/setup
+      - name: Check
+        run: pnpm check
+  test:
+    runs-on: ubuntu-latest
+    needs: install-dependencies
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup system environment
+        uses: ./.github/actions/setup
+      - name: Test
+        run: pnpm test
+  build:
+    runs-on: ubuntu-latest
+    needs: [check, test]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup system environment
+        uses: ./.github/actions/setup
+      - name: Build
+        run: pnpm build
+      - name: Save dist directory
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ runner.os }}-dist-${{ github.run_id }}
+          path: ./dist
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup system environment
+        uses: ./.github/actions/setup
+      - name: Get dist directory
+        uses: actions/cache/restore@v4
+        with:
+          key: ${{ runner.os }}-dist-${{ github.run_id }}
+          path: ./dist
+          fail-on-cache-miss: true
+      - name: Log dist index file
+        run: cat ./dist/index.js
