@@ -1,3 +1,3 @@
-# @fslzrr/create-new-project
+# @fslzrr/create-new
 
 CLI tool that scaffolds new projects
