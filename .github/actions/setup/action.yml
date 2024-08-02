@@ -13,6 +13,7 @@ runs:
       with:
         cache: "pnpm"
         node-version-file: .nvmrc
+        registry-url: "https://registry.npmjs.org"
     - name: Install dependencies
       shell: bash
       run: pnpm install --frozen-lockfile --prefer-offline
