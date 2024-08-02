@@ -1,5 +1,5 @@
 {
-	"name": "@fslzrr/create-new-project",
+	"name": "@fslzrr/create-new",
 	"version": "1.0.0",
 	"description": "CLI tool that scaffolds new projects",
 	"bin": "bin/index.js",
