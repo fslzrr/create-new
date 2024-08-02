@@ -20,6 +20,9 @@ importers:
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.0.0)(ts-node@10.9.2(@types/node@22.0.0)(typescript@5.5.4))
+      semver:
+        specifier: ^7.6.3
+        version: 7.6.3
       ts-jest:
         specifier: ^29.2.3
         version: 29.2.3(@babel/core@7.25.2)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@22.0.0)(ts-node@10.9.2(@types/node@22.0.0)(typescript@5.5.4)))(typescript@5.5.4)
