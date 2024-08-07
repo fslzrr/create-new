@@ -1,10 +1,19 @@
-name: ci
+name: release
 
 on:
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Release type
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   HUSKY: 0
@@ -52,12 +61,15 @@ jobs:
         with:
           key: ${{ runner.os }}-dist-${{ github.run_id }}
           path: ./dist
-  release-alpha:
+  release-latest:
+    environment: production
     runs-on: ubuntu-latest
     needs: build
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: Setup system environment
         uses: ./.github/actions/setup
       - name: Get artifacts
@@ -66,8 +78,18 @@ jobs:
           key: ${{ runner.os }}-dist-${{ github.run_id }}
           path: ./dist
           fail-on-cache-miss: true
-      - name: Release alpha version
+      - name: Release latest version
         env:
           GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RELEASE_TYPE: ${{ inputs.release }}
         run: node ./scripts/publish.js
+      - name: Format
+        run: pnpm format
+      - name: Commit latest version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore(version): ${{ inputs.release }} version bump"
+          git push

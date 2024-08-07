@@ -14,7 +14,6 @@
 		"format": "biome format --write",
 		"lint": "biome lint --write",
 		"test": "jest",
-		"release": "GITHUB_DEFAULT_BRANCH=main GITHUB_BASE_REF=main GITHUB_HEAD_REF=feat/release-pipeline node ./scripts/publish.js",
 		"prepare": "husky",
 		"precommit": "biome check --staged --no-errors-on-unmatched"
 	},

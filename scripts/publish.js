@@ -26,14 +26,18 @@ function exec(command) {
 function getBranches() {
 	const {
 		GITHUB_DEFAULT_BRANCH = 'default-branch', // provided in pipeline
-		GITHUB_BASE_REF = 'base-branch',
-		GITHUB_HEAD_REF = 'current-branch',
+		GITHUB_BASE_REF = 'base-branch', // pr
+		GITHUB_HEAD_REF = 'current-branch', // pr
+		GITHUB_REF_NAME, // manual
 	} = process.env;
 
 	return {
 		defaultBranch: GITHUB_DEFAULT_BRANCH,
 		baseBranch: GITHUB_BASE_REF,
-		currentBranch: GITHUB_HEAD_REF,
+		currentBranch:
+			GITHUB_REF_NAME === GITHUB_DEFAULT_BRANCH
+				? GITHUB_REF_NAME
+				: GITHUB_HEAD_REF,
 	};
 }
 
@@ -126,6 +130,7 @@ function publishToRegistry(tag) {
  * @param {string} currentBranch
  */
 function publishAlpha(currentBranch) {
+	log('publishing alpha version');
 	const branchTag = getBranchTag(currentBranch);
 	const currentVersion = getCurrentVersion(branchTag);
 	const nextAlphaVersion = semver.inc(currentVersion, 'prerelease', branchTag);
@@ -133,23 +138,39 @@ function publishAlpha(currentBranch) {
 	publishToRegistry(branchTag);
 }
 
+/**
+ * returns the release type
+ * @returns {'patch' | 'minor' | 'major'}
+ */
+function getReleaseType() {
+	const { RELEASE_TYPE = 'patch' } = process.env;
+	return RELEASE_TYPE;
+}
+
+/**
+ * publish latest version
+ * @returns
+ */
+function publishLatest() {
+	log('publishing latest version');
+	const packageJson = readPackageJson();
+	const releaseType = getReleaseType();
+	const nextLatestVersion = semver.inc(packageJson.version, releaseType);
+	bumpPackageVersionUp(nextLatestVersion);
+	publishToRegistry('latest');
+}
+
 function publish() {
 	const { defaultBranch, baseBranch, currentBranch } = getBranches();
 
 	if (currentBranch === defaultBranch) {
-		console.log('latest release not implemented yet');
+		publishLatest();
 		return;
 	}
-
-	// TODO: publish beta
 
 	if (baseBranch === defaultBranch) {
 		publishAlpha(currentBranch);
 	}
-
-	// console.log('\n\n');
-	// console.log('process.env\n');
-	// console.log(JSON.stringify(process.env, null, 4));
 }
 
 // just handling alpha versions
