@@ -133,23 +133,38 @@ function publishAlpha(currentBranch) {
 	publishToRegistry(branchTag);
 }
 
+/**
+ * returns the release type
+ * @returns {'patch' | 'minor' | 'major'}
+ */
+function getReleaseType() {
+	const { RELEASE_TYPE = 'patch' } = process.env;
+	return RELEASE_TYPE;
+}
+
+/**
+ * publish latest version
+ * @returns
+ */
+function publishLatest() {
+	const packageJson = readPackageJson();
+	const releaseType = getReleaseType();
+	const nextLatestVersion = semver.inc(packageJson.version, releaseType);
+	bumpPackageVersionUp(nextLatestVersion);
+	// publishToRegistry('latest');
+}
+
 function publish() {
 	const { defaultBranch, baseBranch, currentBranch } = getBranches();
 
 	if (currentBranch === defaultBranch) {
-		console.log('latest release not implemented yet');
+		publishLatest();
 		return;
 	}
-
-	// TODO: publish beta
 
 	if (baseBranch === defaultBranch) {
 		publishAlpha(currentBranch);
 	}
-
-	// console.log('\n\n');
-	// console.log('process.env\n');
-	// console.log(JSON.stringify(process.env, null, 4));
 }
 
 // just handling alpha versions
