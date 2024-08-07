@@ -1,10 +1,15 @@
-name: ci
+name: release
 
 on:
-  pull_request:
-
-permissions:
-  contents: read
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Release type
+        required: true
+        options:
+          - patch
+          - minor
+          - major
 
 env:
   HUSKY: 0
@@ -52,7 +57,7 @@ jobs:
         with:
           key: ${{ runner.os }}-dist-${{ github.run_id }}
           path: ./dist
-  release-alpha:
+  release-latest:
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -66,8 +71,18 @@ jobs:
           key: ${{ runner.os }}-dist-${{ github.run_id }}
           path: ./dist
           fail-on-cache-miss: true
-      - name: Release alpha version
+      - name: Release latest version
         env:
           GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          RELEASE_TYPE: ${{ inputs.release }}
         run: node ./scripts/publish.js
+      - name: Commit latest version
+        run: |
+          date > generated.txt
+          # Note: the following account information will not work on GHES
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: version bump"
+          git push
