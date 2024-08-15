@@ -138,7 +138,7 @@ function getOptionValues(option: OptionLong | OptionShort) {
 	return { name, value };
 }
 
-type Program = {
+type ProgramCLI = {
 	command?: string;
 	arguments?: string[];
 	options?: Record<string, boolean | string>;
@@ -147,7 +147,7 @@ type Program = {
 export function parse(args: string[]) {
 	const usefulArgs = args.splice(2);
 
-	const program = usefulArgs.reduce<Program>(
+	const program = usefulArgs.reduce<ProgramCLI>(
 		(p, arg) => {
 			const optionLong = OptionLongSchema.safeParse(arg);
 			if (optionLong.success) {
