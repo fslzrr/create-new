@@ -1,3 +1,6 @@
+import { parse } from './parse';
+
 export default function main() {
-	console.log('@fslzrr/create-new');
+	const program = parse(process.argv);
+	console.log(program);
 }
