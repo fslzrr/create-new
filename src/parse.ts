@@ -54,6 +54,23 @@ const FlagLongSchema = z.custom<`--${string}`>((data) => {
 		return false;
 	}
 
+	if (flagName.endsWith('-')) {
+		return false;
+	}
+
+	let sequentialDashes = 0;
+	for (let index = 0; index < flagName.length; index++) {
+		if (flagName[index] !== '-') {
+			sequentialDashes = 0;
+			continue;
+		}
+
+		sequentialDashes++;
+		if (sequentialDashes > 1) {
+			return false;
+		}
+	}
+
 	return true;
 });
 
@@ -138,10 +155,9 @@ function getOptionValues(option: OptionLong | OptionShort) {
 	return { name, value };
 }
 
-type ProgramCLI = {
-	command?: string;
-	arguments?: string[];
-	options?: Record<string, boolean | string>;
+export type ProgramCLI = {
+	arguments: string[];
+	options: Record<string, boolean | string>;
 };
 
 export function parse(args: string[]) {
@@ -152,9 +168,6 @@ export function parse(args: string[]) {
 			const optionLong = OptionLongSchema.safeParse(arg);
 			if (optionLong.success) {
 				const { name, value } = getOptionValues(optionLong.data);
-				if (!p.options) {
-					p.options = {};
-				}
 
 				p.options[name] = value;
 				return p;
@@ -163,9 +176,6 @@ export function parse(args: string[]) {
 			const optionShort = OptionShortSchema.safeParse(arg);
 			if (optionShort.success) {
 				const { name, value } = getOptionValues(optionShort.data);
-				if (!p.options) {
-					p.options = {};
-				}
 
 				p.options[name] = value;
 				return p;
@@ -174,9 +184,6 @@ export function parse(args: string[]) {
 			const flagLong = FlagLongSchema.safeParse(arg);
 			if (flagLong.success) {
 				const { name } = getFlagValues(flagLong.data);
-				if (!p.options) {
-					p.options = {};
-				}
 
 				p.options[name] = true;
 				return p;
@@ -185,9 +192,6 @@ export function parse(args: string[]) {
 			const flagShort = FlagShortSchema.safeParse(arg);
 			if (flagShort.success) {
 				const { name: names } = getFlagValues(flagShort.data);
-				if (!p.options) {
-					p.options = {};
-				}
 
 				for (const name of names.split('')) {
 					p.options[name] = true;
@@ -196,22 +200,13 @@ export function parse(args: string[]) {
 				return p;
 			}
 
-			if (!p.command) {
-				p.command = arg;
-				return p;
-			}
-
-			if (!p.arguments) {
-				p.arguments = [];
-			}
 			p.arguments.push(arg);
 
 			return p;
 		},
 		{
-			command: undefined,
-			arguments: undefined,
-			options: undefined,
+			arguments: [],
+			options: {},
 		},
 	);
 

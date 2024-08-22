@@ -1,36 +1,35 @@
-import { z } from 'zod';
+import type { ProgramCLI } from './parse';
 
-const CreateNewProgramSchema = z.object({
-	command: z.literal('lib', {
-		errorMap: (issue, ctx) => {
-			if (!ctx.data) {
-				return { message: 'Missing command' };
-			}
-			if (issue.code === 'invalid_literal') {
-				return { message: `Invalid command "${ctx.data}"` };
-			}
-			return { message: ctx.defaultError };
-		},
-	}),
-	arguments: z.tuple(
-		[
-			z.string().min(1, {
-				message: 'Argument is empty',
-			}),
-		],
-		{
-			required_error: 'Missing arguments',
-		},
-	),
-});
+type Program = {
+	arguments: ['lib', string];
+};
 
-export function validate(program: unknown) {
-	const parsedProgram = CreateNewProgramSchema.safeParse(program);
-	if (!parsedProgram.success) {
-		const { message } = parsedProgram.error.errors[0];
-		console.error(message);
+function validateProgram(program: ProgramCLI): Program {
+	if (program.arguments.length === 0) {
+		throw new Error('Missing command');
+	}
+
+	const [command, ...args] = program.arguments;
+	if (command === 'lib') {
+		const [name] = args;
+		if (!name) {
+			throw new Error('Missing <name> argument');
+		}
+
+		return { arguments: [command, name] };
+	}
+
+	throw new Error('Invalid command');
+}
+
+export function validate(program: ProgramCLI) {
+	try {
+		validateProgram(program);
+	} catch (error) {
+		const e = error as Error;
+		console.error(e.message);
 		process.exit(1);
 	}
 
-	return parsedProgram.data;
+	return program;
 }
